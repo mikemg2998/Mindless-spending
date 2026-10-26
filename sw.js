@@ -1,6 +1,6 @@
 /* Mindless Spending — offline support.
    Network first (so changes pushed to the site arrive as soon as there is a connection), cache as fallback (so it works offline). */
-const CACHE = 'mindless-v1';
+const CACHE = 'mindless-v2';
 const CORE = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 

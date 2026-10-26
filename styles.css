@@ -321,3 +321,39 @@ details summary{cursor:pointer;font-weight:650;color:var(--ink-2)}
 .tip{position:fixed;z-index:70;pointer-events:none;background:var(--ink);color:#fff;font-size:13px;line-height:1.45;padding:8px 11px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.18);max-width:260px}
 .tip .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
 .tip .dot.inc{background:#4ade80} .tip .dot.exp{background:#ff8a8d}
+
+/* Multi-currency */
+.mb-right{margin-left:auto;display:flex;align-items:center}
+.monthbar .chip{margin-left:6px}
+.cur-ctl button{padding:6px 11px;font-size:13px;letter-spacing:.02em}
+.hero-alt{font-size:15px;font-weight:600;color:rgba(255,255,255,.85);margin:-2px 0 6px}
+.amt-wrap{display:flex;flex-direction:column;align-items:flex-end;flex:none;max-width:48%}
+.approx{font-size:12px;color:var(--ink-3);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rate-line{display:flex;align-items:center;gap:6px;margin-top:8px}
+.rate-line .ic{width:16px;height:16px}
+.rate-card .rate-big{font-family:var(--display);font-weight:750;font-size:clamp(22px,5vw,28px);margin:2px 0 6px;color:var(--green-ink)}
+.rate-card .row{margin-top:10px}
+.mini-left small{display:block;margin-top:4px;font-size:12px}
+.debts{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.debt{display:flex;flex-direction:column;gap:9px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.debt:last-child{border-bottom:0;padding-bottom:0}
+.acc-pick{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.acc-opt{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 9px;border-radius:14px;border:1.5px solid var(--line);text-align:left;flex:none}
+.acc-opt > span:first-child{font-size:20px}
+.ao-t{display:flex;flex-direction:column;font-weight:650;font-size:14px;line-height:1.2;white-space:nowrap}
+.ao-t small{font-weight:500;color:var(--ink-3);font-size:12px}
+.acc-opt.on{border-color:var(--green);background:var(--tint)}
+.amt-in .cur-code{font-size:13px;font-weight:700;color:var(--ink-3);letter-spacing:.04em}
+.field.amount.small .amt-in .cur-sign{font-size:22px}
+.field.amount.small .amt-in input{font-size:24px}
+.amt-cur{display:grid;grid-template-columns:1fr 104px;gap:10px;align-items:end}
+.pair{background:var(--tint);border-radius:var(--r-sm);padding:12px 12px 6px;margin-bottom:14px}
+.pair .field{margin-bottom:6px}
+.pair .note{font-size:13px;margin-bottom:6px}
+.pair .amt-in{border-color:#cfe5d6}
+details.more{margin-bottom:12px}
+details.more summary{display:flex;align-items:center;gap:6px;list-style:none;padding:8px 0;font-weight:650;color:var(--ink-2)}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary .ic{width:18px;height:18px;color:var(--green-ink)}
+details.more[open] summary{margin-bottom:6px}
+.seg-ctl.scroll{max-width:100%;overflow-x:auto;scrollbar-width:none}
