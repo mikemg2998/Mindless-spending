@@ -3,7 +3,7 @@
    converted with the day's exchange rate. Transfers and debt payments between currencies keep both real amounts.
    Views: home, movs, pagos (fixed bills, subscriptions, fixed income), cuentas (accounts, debts, rate), analisis, ahorro (goals), ajustes. */
 'use strict';
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 const KEY = 'mindless-spending-v1';
 
 const $ = s => document.querySelector(s);
@@ -265,6 +265,7 @@ const ICONS = {
   upload: 'M12 16V5M7 10l5-5 5 5M5 20h14',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
   install: 'M12 3v12M7 10l5 5 5-5M4 17v3h16v-3',
+  menu: 'M4 7h16M4 12h16M4 17h10',
   info: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5M12 8h.01',
 };
 const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n]}"/></svg>`;
@@ -272,7 +273,6 @@ const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hid
 /* ---------- UI state ---------- */
 const UI = {view: 'home', ym: thisYm(), movFilter: 'all', movSearch: '', pagosTab: 'bill'};
 const NAV = [['home', 'Inicio', 'home'], ['movs', 'Movimientos', 'list'], ['pagos', 'Pagos', 'calendar'], ['cuentas', 'Cuentas', 'wallet'], ['analisis', 'Análisis', 'chart'], ['ahorro', 'Ahorro', 'target'], ['ajustes', 'Ajustes', 'gear']];
-const TABS = ['home', 'movs', 'pagos', 'cuentas', 'ahorro'];
 
 function go(view) {
   UI.view = view;
@@ -385,53 +385,34 @@ function debtCard(d) {
 
 /* ---------- Views ---------- */
 function viewHome() {
-  const ym = UI.ym, s = summary(ym);
+  const ym = UI.ym, s = summary(ym), isNow = ym === thisYm();
   if (!D.tx.length && !D.fixed.length && !D.goals.length && !D.debts.length && !D.accounts.some(a => a.initial)) return welcome();
-  const base = Math.max(s.inc, s.exp + s.sav + s.pend, 1);
-  const seg = (v, cls, label) => v > 0 ? `<div class="seg ${cls}" style="width:${v / base * 100}%" data-tip="${label}: ${money(v)}"></div>` : '';
-  const cats = byCat(ym), recent = [...s.tx].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id)).slice(0, 5);
-  const ins = insights(ym).slice(0, 6), o = OTHER(VIEW()), pendN = s.pendList.filter(f => f.kind !== 'inc').length;
-  return `${demoBanner()}${monthBar()}
-  <section class="hero ${s.left < 0 ? 'neg' : ''}">
-    <span class="eyebrow">Te queda</span><div class="hero-num num">${money(s.left)}</div>
-    ${o !== VIEW() ? `<p class="hero-alt num">≈ ${money(conv(s.left, VIEW(), o), {cur: o})} ${o}</p>` : ''}
-    <p class="hero-sub">${s.inc ? `de ${money(s.inc)} que han entrado` : 'Registra tus ingresos para ver cuánto te queda'}${s.pend ? `, ya descontando ${money(s.pend)} por pagar` : ''}.</p>
-    <div class="stack" aria-hidden="true">${seg(s.exp, 'exp', 'Gastado')}${seg(s.sav, 'sav', 'Ahorrado')}${seg(s.pend, 'pend', 'Por pagar')}${seg(Math.max(0, s.left), 'left', 'Te queda')}</div>
-    <div class="legend"><span><i class="exp"></i>Gastado</span><span><i class="sav"></i>Ahorrado</span><span><i class="pend"></i>Por pagar</span><span><i class="left"></i>Te queda</span></div>
+  const o = OTHER(VIEW()), ins = insights(ym), alerts = ins.filter(i => i.tone === 'bad' || i.tone === 'warn');
+  const feed = [...s.tx].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id)).slice(0, 8);
+  const groups = {};
+  for (const t of feed) (groups[t.date] = groups[t.date] || []).push(t);
+  const pend = s.pendList.filter(f => f.kind !== 'inc');
+  const QA = [['add-tx', 'exp', 'Gasto', 'up', 'exp'], ['add-tx', 'inc', 'Ingreso', 'down', 'inc'], ['transfer', '', 'Transferir', 'swap', 'neu'], ['nav', 'pagos', 'Pagar', 'card', 'warn']];
+  return `<section class="bank-head ${s.left < 0 ? 'neg' : ''}">
+    <div class="bh-top">
+      <div class="bh-month"><button class="bh-ic" data-act="month" data-d="-1" aria-label="Mes anterior">${ic('chevL')}</button><span>${isNow ? 'Este mes' : monthName(ym)}</span><button class="bh-ic" data-act="month" data-d="1" aria-label="Mes siguiente">${ic('chevR')}</button></div>
+      <div class="bh-right">${curToggle()}<button class="bh-ic" data-nav="ajustes" aria-label="Ajustes">${ic('gear')}</button></div>
+    </div>
+    <span class="bh-label">Te queda</span>
+    <div class="bh-num num">${money(s.left)}</div>
+    <p class="bh-sub">${o !== VIEW() ? `≈ ${money(conv(s.left, VIEW(), o), {cur: o})} ${o}` : ''}${!s.inc ? `${o !== VIEW() ? ' · ' : ''}aún no registras ingresos` : ''}</p>
+    <div class="bh-pills"><button class="bh-pill" data-act="filter-movs" data-id="inc">${ic('down')}Entró ${money(s.inc)}</button><button class="bh-pill" data-act="filter-movs" data-id="exp">${ic('up')}Salió ${money(s.exp)}</button>${s.pend ? `<button class="bh-pill pend" data-nav="pagos">${ic('clock')}Por pagar ${money(s.pend)}</button>` : ''}${s.sav ? `<button class="bh-pill" data-nav="ahorro">${ic('target')}Ahorrado ${money(s.sav)}</button>` : ''}</div>
   </section>
-  <section class="tiles">
-    <button class="tile inc" data-act="filter-movs" data-id="inc"><span class="t-ic">${ic('down')}</span><span class="t-label">Ingresos</span><span class="t-num num">${money(s.inc)}</span>${s.pendInc ? `<span class="t-sub">+ ${money(s.pendInc)} por recibir</span>` : '<span class="t-sub">este mes</span>'}</button>
-    <button class="tile exp" data-act="filter-movs" data-id="exp"><span class="t-ic">${ic('up')}</span><span class="t-label">Gastos</span><span class="t-num num">${money(s.exp)}</span><span class="t-sub">${s.inc ? pct(s.exp / s.inc) + ' de tus ingresos' : 'este mes'}</span></button>
-    <button class="tile pend" data-nav="pagos"><span class="t-ic">${ic('clock')}</span><span class="t-label">Por pagar</span><span class="t-num num">${money(s.pend)}</span><span class="t-sub">${pendN} pago${pendN === 1 ? '' : 's'} pendiente${pendN === 1 ? '' : 's'}</span></button>
-    <button class="tile sav" data-nav="ahorro"><span class="t-ic">${ic('target')}</span><span class="t-label">Ahorrado</span><span class="t-num num">${money(s.sav)}</span><span class="t-sub">${s.inc ? pct(Math.max(0, s.sav) / s.inc) + ' de tus ingresos' : 'este mes'}</span></button>
-  </section>
-  <div class="grid">
-    <section class="card">
-      <div class="card-head"><h3>Por pagar</h3><button class="link" data-nav="pagos">Ver todo ${ic('chevR')}</button></div>
-      ${s.pendList.length ? `<div class="rows">${s.pendList.slice(0, 6).map(f => fixedRow(f, ym)).join('')}</div>` : s.due.length ? `<p class="all-done">${ic('check')}Todo pagado este mes.</p>` : `<p class="empty-line">Agrega tus pagos fijos (arriendo, servicios, suscripciones) y aquí verás qué falta.</p><button class="btn sm" data-act="new-fixed" data-id="bill">${ic('plus')}Agregar pago fijo</button>`}
-    </section>
-    <section class="card">
-      <div class="card-head"><h3>En qué se te va la plata</h3><button class="link" data-nav="analisis">Análisis ${ic('chevR')}</button></div>
-      ${catBars(cats, s.exp, 5)}
-    </section>
-    <section class="card span2">
-      <div class="card-head"><h3>Dónde puedes ahorrar</h3></div>
-      ${insightCards(ins)}
-    </section>
-    <section class="card">
-      <div class="card-head"><h3>Tus cuentas</h3><button class="link" data-nav="cuentas">Cuentas ${ic('chevR')}</button></div>
-      <div class="rows">${D.accounts.map(a => `<button class="row-item" data-nav="cuentas"><span class="emo">${a.emoji || '🏦'}</span><span class="ri-main"><span class="ri-title">${esc(a.name)}</span><span class="ri-sub">${a.cur}</span></span>${amtCell(accBalance(a), a.cur, accBalance(a) < 0 ? 'exp' : '')}</button>`).join('')}</div>
-      <p class="note rate-line">${ic('swap')}${rateText()} · ${ratesAge()}</p>
-    </section>
-    <section class="card">
-      <div class="card-head"><h3>Tus metas</h3><button class="link" data-nav="ahorro">Ahorro ${ic('chevR')}</button></div>
-      ${D.goals.length ? D.goals.slice(0, 3).map(g => goalCard(g, true)).join('') : `<p class="empty-line">Ponte una meta (un viaje, un fondo de emergencia) y te digo cuánto apartar cada mes.</p><button class="btn sm" data-act="new-goal">${ic('plus')}Crear meta</button>`}
-    </section>
-    <section class="card span2">
-      <div class="card-head"><h3>Últimos movimientos</h3><button class="link" data-nav="movs">Ver todos ${ic('chevR')}</button></div>
-      ${recent.length ? `<div class="rows">${recent.map(txRow).join('')}</div>` : `<p class="empty-line">Sin movimientos en ${monthName(ym)}.</p>`}
-    </section>
-  </div>`;
+  <div class="acc-cards" role="list">${D.accounts.map(a => { const b = accBalance(a); return `<button class="acc-card" role="listitem" data-act="edit-acc" data-id="${a.id}"><span class="ac-name">${a.emoji || '🏦'} ${esc(a.name)}</span><span class="ac-bal num ${b < 0 ? 'exp-t' : ''}">${money(b, {cur: a.cur})}</span><span class="ac-sub">${a.cur}${a.cur !== VIEW() ? ' · ' + approx(b, a.cur) : ''}</span></button>`; }).join('')}<button class="acc-card add" data-act="new-acc">${ic('plus')}<span>Cuenta</span></button></div>
+  ${demoBanner()}
+  <div class="quick">${QA.map(([act, id, l, i, tone]) => `<button class="qa" data-act="${act}" data-id="${id}"><span class="qa-ic ${tone}">${ic(i)}</span>${l}</button>`).join('')}</div>
+  ${alerts.length ? `<button class="card alert-card" data-act="show-insights"><span class="ac-bar"></span><span class="ri-main"><span class="ri-title">${alerts.length} aviso${alerts.length > 1 ? 's' : ''}</span><span class="ri-sub">${esc(alerts.slice(0, 2).map(a => a.title).join(' · '))}</span></span>${ic('chevR')}</button>`
+    : ins.length ? `<button class="card alert-card good" data-act="show-insights"><span class="ac-bar"></span><span class="ri-main"><span class="ri-title">Vas bien</span><span class="ri-sub">${esc(ins[0].title)}</span></span>${ic('chevR')}</button>` : ''}
+  ${pend.length ? `<section class="card"><div class="card-head"><h3>Por pagar</h3><button class="link" data-nav="pagos">Ver todo ${ic('chevR')}</button></div><div class="rows">${pend.slice(0, 2).map(f => fixedRow(f, ym)).join('')}</div></section>` : ''}
+  <section class="card feed">
+    <div class="card-head"><h3>Movimientos</h3><button class="link" data-nav="movs">Ver todos ${ic('chevR')}</button></div>
+    ${feed.length ? Object.entries(groups).map(([d, ts]) => `<div class="day-head"><span>${dayLabel(d)}</span></div><div class="rows">${ts.map(txRow).join('')}</div>`).join('') : `<p class="empty-line">Sin movimientos en ${monthName(ym)}. Toca el + para anotar el primero.</p>`}
+  </section>`;
 }
 function welcome() {
   return `<section class="welcome">
@@ -448,7 +429,7 @@ function welcome() {
   </section>`;
 }
 function demoBanner() {
-  return D.demo ? `<div class="banner warn">${ic('info')}<span>Estás viendo <strong>datos de ejemplo</strong>.</span><button class="btn sm" data-act="clear-demo">Empezar con mis datos</button></div>` : '';
+  return D.demo ? `<div class="banner warn">${ic('info')}<span>Datos de ejemplo</span><button class="link" data-act="clear-demo">Empezar con los míos ${ic('chevR')}</button></div>` : '';
 }
 
 function viewMovs() {
@@ -638,7 +619,10 @@ function render() {
   const views = {home: viewHome, movs: viewMovs, pagos: viewPagos, cuentas: viewCuentas, analisis: viewAnalisis, ahorro: viewAhorro, ajustes: viewAjustes};
   $('#main').innerHTML = (views[v] || viewHome)();
   $('#side-nav').innerHTML = NAV.map(([k, l, i]) => `<button class="${v === k ? 'on' : ''}" data-nav="${k}" ${v === k ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span></button>`).join('');
-  $('#tabbar').innerHTML = NAV.filter(n => TABS.includes(n[0])).map(([k, l, i]) => `<button class="${v === k ? 'on' : ''}" data-nav="${k}" ${v === k ? 'aria-current="page"' : ''}>${ic(i)}<span>${l === 'Movimientos' ? 'Movs' : l}</span></button>`).join('');
+  const tab = ([k, l, i]) => `<button class="${v === k ? 'on' : ''}" data-nav="${k}" ${v === k ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span></button>`;
+  const more = !['home', 'movs', 'pagos'].includes(v);
+  $('#tabbar').innerHTML = tab(NAV[0]) + tab(NAV[1]) + `<button class="tab-add" data-act="add-tx" aria-label="Agregar movimiento">${ic('plus')}</button>` + tab(NAV[2]) + `<button class="${more ? 'on' : ''}" data-act="more">${ic('menu')}<span>Más</span></button>`;
+  document.body.classList.toggle('on-home', v === 'home' && !!document.querySelector('.bank-head'));
   const s = summary(thisYm());
   $('#side-foot').innerHTML = `<div class="mini-left"><span class="eyebrow">Te queda este mes</span><strong class="num ${s.left < 0 ? 'exp-t' : ''}">${money(s.left)}</strong><small class="note">${rateText()}</small></div>${installPrompt ? `<button class="btn sm ghost" data-act="install">${ic('install')}Instalar app</button>` : ''}`;
   drawIE();
@@ -1131,7 +1115,9 @@ document.addEventListener('click', e => {
   if (!a) return;
   const id = a.dataset.id;
   switch (a.dataset.act) {
-    case 'add-tx': txSheet(); break;
+    case 'add-tx': txSheet(null, id ? {type: id} : {}); break;
+    case 'more': openSheet(`${sheetHead('Más')}<div class="more-grid">${NAV.slice(3).map(([k, l, i]) => `<button class="more-item ${UI.view === k ? 'on' : ''}" data-nav="${k}"><span class="mi-ic">${ic(i)}</span><span><strong>${l}</strong><small>${{cuentas: 'Saldos, deudas y tasa de cambio', analisis: 'Gastos por categoría y meses', ahorro: 'Metas y dónde ahorrar', ajustes: 'Monedas, categorías, copia de datos'}[k]}</small></span></button>`).join('')}</div>`); break;
+    case 'show-insights': openSheet(`${sheetHead('Dónde puedes ahorrar')}${insightCards(insights(UI.ym))}`); break;
     case 'edit-tx': txSheet(D.tx.find(t => t.id === id)); break;
     case 'transfer': transferSheet(); break;
     case 'edit-transfer': transferSheet(D.tx.find(t => t.id === id)); break;
