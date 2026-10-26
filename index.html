@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mindless Spending</title>
+<meta name="description" content="Control de gastos personal: cuánto entra, cuánto sale, qué falta por pagar, cuánto te queda y dónde puedes ahorrar.">
+<meta name="theme-color" content="#0f8a4a">
+<meta name="color-scheme" content="light">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mindless">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600..800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side" aria-label="Navegación">
+    <button class="brand" data-nav="home" aria-label="Mindless Spending, inicio"><span class="mark"></span><span class="bt"><small>Mindless</small>Spending</span></button>
+    <button class="btn primary add-side" data-act="add-tx"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Agregar movimiento</button>
+    <nav class="nav" id="side-nav"></nav>
+    <div class="side-foot" id="side-foot"></div>
+  </aside>
+  <div class="content">
+    <header class="mtop">
+      <button class="brand" data-nav="home" aria-label="Mindless Spending, inicio"><span class="mark"></span><span class="bt"><small>Mindless</small>Spending</span></button>
+      <button class="icon-btn" data-nav="ajustes" aria-label="Ajustes"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4"/></svg></button>
+    </header>
+    <main class="main" id="main"><noscript>Mindless Spending necesita JavaScript activado.</noscript></main>
+  </div>
+  <button class="fab" data-act="add-tx" aria-label="Agregar movimiento"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <nav class="tabbar" id="tabbar" aria-label="Navegación"></nav>
+</div>
+<div id="sheet-root"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
